@@ -42,6 +42,7 @@ data.append(False) # data[4] is flag indicating if word was found
 data.append('')    # data[5] is the word
 data.append('')    # data[6] is word,NNNN
 data.append(0)     # data[7] is frequency
+data.append([])    # data[8] is loop iteration variable
 
 # Open the secondary memory
 word_freqs = touchopen('word_freqs', 'rb+')
@@ -56,14 +57,15 @@ while True:
         data[1][0] = data[1][0] + '\n' # Add \n
     data[2] = None
     data[3] = 0 
+    data[8] = list(data[1][0]) # initialize line of characters
     # Loop over characters in the line
-    for c in data[1][0]: # elimination of symbol c is exercise
+    while data[8]:
         if data[2] == None:
-            if c.isalnum():
+            if data[8][0].isalnum():
                 # We found the start of a word
                 data[2] = data[3]
         else:
-            if not c.isalnum():
+            if not data[8][0].isalnum():
                 # We found the end of a word. Process it
                 data[4] = False 
                 data[5] = data[1][0][data[2]:data[3]].lower()
@@ -90,6 +92,7 @@ while True:
                     word_freqs.seek(0,0)
                 # Let's reset
                 data[2] = None
+        data[8].pop(0)
         data[3] += 1
 # We're done with the input file
 f.close()
@@ -104,6 +107,7 @@ del data[:]
 data = data + [[]]*(25 - len(data))
 data.append('') # data[25] is word,freq from file
 data.append(0)  # data[26] is freq
+data.append(0) # data[27] is a new loop incrementing register
 
 # Loop over secondary memory file
 while True:
@@ -112,15 +116,21 @@ while True:
         break
     data[26] = int(data[25].split(',')[1]) # Read it as integer
     data[25] = data[25].split(',')[0].strip() # word
+    data[27] = 0 # create a loop counter
     # Check if this word has more counts than the ones in memory
-    for i in range(25): # elimination of symbol i is exercise
-        if data[i] == [] or data[i][1] < data[26]:
-            data.insert(i, [data[25], data[26]]) 
+    while data[27] < 25:
+        # data[27] MUST be incremented, not decremented, in order
+        # to correctly sort the list.
+        if data[data[27]] == [] or data[data[27]][1] < data[26]:
+            data.insert(data[27], [data[25], data[26]]) 
             del data[26] #  delete the last element
             break
+        data[27] += 1
             
-for tf in data[0:25]: # elimination of symbol tf is exercise
-    if len(tf) == 2:
-        print tf[0], ' - ', tf[1]
+data[26] = 0
+while data[26] < 25:
+    if len(data[data[26]]) == 2:
+        print data[data[26]][0], ' - ', data[data[26]][1]
+    data[26] += 1
 # We're done
 word_freqs.close()
